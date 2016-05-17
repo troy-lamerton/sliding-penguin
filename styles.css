@@ -1,0 +1,19 @@
+* {
+  padding: 0;
+  margin: 0;
+  background: #25c;
+  color: white;
+}
+
+.game > * {
+  margin-left: auto;
+  margin-right: auto;
+}
+
+h1 {
+  margin: 30px 0px 100px 0px;
+  text-align: center;
+
+  font-family: Tahoma, sans-serif;
+  font-size: 2.3em;
+}
