@@ -1,34 +1,78 @@
 var game = new Phaser.Game(720, 480, Phaser.AUTO, 'gameContainer');
-var player, ground, obstacles;
+var player, ground, obstacles; 
 var PlayingState = {
   preload: function () {
     game.load.image('background', 'assets/background.png');
     game.load.image('penguin', 'assets/penguin_0.png');
     game.load.image('ground', 'assets/ground.png');
+    game.load.image('obstacle', 'assets/obstacle.png');
+
   },
   create: function () {
-    
     game.physics.startSystem(Phaser.Physics.ARCADE);
 
     game.add.image(0, 0, 'background');
 
-
-    ground = game.add.sprite(0,400, 'ground');
+    //add ground and make it solid
+    ground = game.add.sprite(0,this.world.height - 80, 'ground');
     game.physics.arcade.enable(ground);
     ground.body.immovable = true;
 
+    //Player physics
     player = game.add.sprite(45, 230, 'penguin');
     game.physics.arcade.enable(player);
 
     player.enableBody = true;
     player.body.bounce.y = 0.1;
-    player.body.gravity.y = 300;
+    player.body.gravity.y = 600;
     player.body.collideWorldBounds = true;
 
-    game.world.angle += 7;
+    player.jumpVelocity = -350;
+    player.canDoubleJump = "wait";
+
+    //Obstacle physics
+    obstacles = game.add.group();
+    obstacles.enableBody = true;
+
+    //arrow keys input
+    cursors = game.input.keyboard.createCursorKeys();
   },
   update: function () {
     game.physics.arcade.collide(player, ground);
+    game.physics.arcade.collide(player, obstacles);
+
+    //  Reset the players velocity (movement)
+    //player.body.velocity.x = 0;
+/*    else
+    {
+        //  Stand still
+        player.animations.stop();
+
+        player.frame = 4;
+    }*/
+
+    //  Allow the player to jump if they are touching the ground.
+    if (cursors.up.isDown && player.body.touching.down)
+    {
+        player.body.velocity.y = player.jumpVelocity;
+        player.canDoubleJump = "jumped once";
+    }
+    else if (cursors.up.isDown && player.canDoubleJump === "ready") {
+      //Double jump!
+      player.body.velocity.y = player.jumpVelocity * 0.8;
+      player.canDoubleJump = "wait";
+    }
+    else if (cursors.up.isUp && player.canDoubleJump === "jumped once") {
+      //Player has jumped and released key
+      player.canDoubleJump = "ready";
+    }
+    if (Math.random()<0.01) {
+      //generate a new obstacle
+      var newBlock = obstacles.create(700, 405, 'obstacle');
+      newBlock.body.immovable = true;
+      newBlock.anchor.setTo(0.5,1);
+      newBlock.body.velocity.x = -300;
+    }
   }
 };
 
