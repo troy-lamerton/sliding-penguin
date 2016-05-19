@@ -51,7 +51,16 @@ var PlayingState = {
         player.frame = 4;
     }*/
 
-    //  Allow the player to jump if they are touching the ground.
+    //player is hitting anything on its right
+    if (player.body.touching.right) {
+      takeDamage();
+    }
+    function takeDamage () {
+      //player has hit something
+      player.body.y = 100;
+    }
+
+    //  Allow the player to jump if they are on top of something.
     if (cursors.up.isDown && player.body.touching.down)
     {
         player.body.velocity.y = player.jumpVelocity;
@@ -66,13 +75,20 @@ var PlayingState = {
       //Player has jumped and released key
       player.canDoubleJump = "ready";
     }
+
+    //generate a new obstacle
     if (Math.random()<0.01) {
-      //generate a new obstacle
       var newBlock = obstacles.create(700, 405, 'obstacle');
+
       newBlock.body.immovable = true;
-      newBlock.anchor.setTo(0.5,1);
+      newBlock.anchor.setTo(0,1);
+      newBlock.scale.setTo(0.5 + Math.random()/2, 0.7 + Math.random()/2); //random width and height
       newBlock.body.velocity.x = -300;
+
     }
+
+
+    
   }
 };
 
