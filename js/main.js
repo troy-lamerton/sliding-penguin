@@ -36,20 +36,18 @@ var PlayingState = {
 
     //arrow keys input
     cursors = game.input.keyboard.createCursorKeys();
+
+    //Adding other variables
+    player.health = 6;
   },
   update: function () {
     game.physics.arcade.collide(player, ground);
-    game.physics.arcade.collide(player, obstacles);
+    game.physics.arcade.collide(player, obstacles, this.noPushing);
 
-    //  Reset the players velocity (movement)
-    //player.body.velocity.x = 0;
-/*    else
-    {
-        //  Stand still
-        player.animations.stop();
-
-        player.frame = 4;
-    }*/
+    this.noPushing = function (player, obstacle) {
+      player.body.x -= obstacle.body.x - obstacle.body.prev.x;
+      player.body.velocity.x =0;//-= obstacle.body.velocity.x;
+    }
 
     //player is hitting anything on its right
     if (player.body.touching.right) {
@@ -58,22 +56,27 @@ var PlayingState = {
     function takeDamage () {
       //player has hit something
       player.body.y = 100;
+      player.health--;
+
+      player.body.gravity.y = 600;
     }
 
-    //  Allow the player to jump if they are on top of something.
-    if (cursors.up.isDown && player.body.touching.down)
-    {
+    // Allow the player to jump if they are on top of something.
+    if (cursors.up.isDown && player.body.touching.down) {
         player.body.velocity.y = player.jumpVelocity;
         player.canDoubleJump = "jumped once";
+    }
+    else if (cursors.up.isUp && player.canDoubleJump === "jumped once") {
+      //Player has jumped and released key
+      player.canDoubleJump = "ready";
     }
     else if (cursors.up.isDown && player.canDoubleJump === "ready") {
       //Double jump!
       player.body.velocity.y = player.jumpVelocity * 0.8;
       player.canDoubleJump = "wait";
     }
-    else if (cursors.up.isUp && player.canDoubleJump === "jumped once") {
-      //Player has jumped and released key
-      player.canDoubleJump = "ready";
+    else if (cursors.right.isDown) {
+      player.x += 10;
     }
 
     //generate a new obstacle
@@ -84,10 +87,7 @@ var PlayingState = {
       newBlock.anchor.setTo(0,1);
       newBlock.scale.setTo(0.5 + Math.random()/2, 0.7 + Math.random()/2); //random width and height
       newBlock.body.velocity.x = -300;
-
     }
-
-
     
   }
 };
