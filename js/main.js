@@ -84,7 +84,7 @@ var PlayingState = {
     function takeDamage () {
       //player has hit something
       player.health--;
-      player.body.y = 100;
+      player.body.y = 300;
       player.body.velocity.y = 0;
 
       obstacles.removeAll();
@@ -109,9 +109,6 @@ var PlayingState = {
       player.body.velocity.y = player.jumpVelocity * 0.8;
       player.canDoubleJump = "wait";
     }
-    else if (cursors.right.isDown) { // FOR DEBUG ONLY
-      player.x += 10;
-    }
     
     //Spawn a new obstacle
     function newObstacle () {
@@ -133,6 +130,11 @@ var PlayingState = {
       obstacles.speed -= 30 + (stage/3 * 25);
       stage++;
       stageText.text = "Stage: " + stage;
+
+      if (obstacles.speed > game.world.width) {
+        // keep the speed low enough to be playable
+        obstacles.speed = game.world.width;
+      }
       obstacleCount = 0;
     }
   }
