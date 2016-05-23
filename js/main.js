@@ -9,6 +9,12 @@ var PlayingState = {
 
   },
   create: function () {
+
+    function togglePause() {
+      game.physics.arcade.isPaused = (game.physics.arcade.isPaused) ? false : true;
+    }
+
+
     game.physics.startSystem(Phaser.Physics.ARCADE);
 
     game.add.image(0, 0, 'background');
@@ -24,29 +30,51 @@ var PlayingState = {
 
     player.enableBody = true;
     player.body.bounce.y = 0.1;
-    player.body.gravity.y = 600;
+    player.body.gravity.y = 800;
     player.body.collideWorldBounds = true;
 
-    player.jumpVelocity = -350;
+    player.jumpVelocity = -425;
     player.canDoubleJump = "wait";
 
     //Obstacle physics
     obstacles = game.add.group();
     obstacles.enableBody = true;
+    obstacles.speed = -200;
 
-    //arrow keys input
-    cursors = game.input.keyboard.createCursorKeys();
 
     //Adding other variables
     player.health = 6;
+    var graphics = game.add.graphics(100, 100);
+    healthBar = new Phaser.Rectangle(20, 2, 300, 40);
+    graphics.beginFill(0xFF700B, 1);
+    graphics.drawRect(healthBar);
+    graphics.endFill();
+
+    // stage controls speed of obstacles
+    stage = 1;
+    obstacleInterval = 6; //Increase stage after spawning this many obstacles.
+    obstacleCount = 0;
+    // Display stage
+    var hudStyle = {font: "bold 16pt Arial"}
+    stageText = game.add.text(this.world.width/2, 9, stage, hudStyle);
+    stageText.anchor.setTo(0.5,0);
+    stageText.text = "Stage: " + stage;
+
+    //arrow keys input
+    cursors = game.input.keyboard.createCursorKeys();
+    // Extra keys
+    spaceKey = this.input.keyboard.addKey(Phaser.Keyboard.SPACEBAR);
+    pauseKey = this.input.keyboard.addKey(Phaser.Keyboard.P);
+    pauseKey.onDown.add(togglePause, this);
   },
+
   update: function () {
     game.physics.arcade.collide(player, ground);
     game.physics.arcade.collide(player, obstacles, this.noPushing);
 
     this.noPushing = function (player, obstacle) {
       player.body.x -= obstacle.body.x - obstacle.body.prev.x;
-      player.body.velocity.x =0;//-= obstacle.body.velocity.x;
+      player.body.velocity.x = 0;
     }
 
     //player is hitting anything on its right
@@ -55,40 +83,58 @@ var PlayingState = {
     }
     function takeDamage () {
       //player has hit something
-      player.body.y = 100;
       player.health--;
+      player.body.y = 100;
+      player.body.velocity.y = 0;
 
-      player.body.gravity.y = 600;
+      obstacles.removeAll();
     }
-
+    function jumpKeyDown () {
+      return (cursors.up.isDown || spaceKey.isDown);
+    }
+    function jumpKeyUp () {
+      return (cursors.up.isUp && spaceKey.isUp);
+    }
     // Allow the player to jump if they are on top of something.
-    if (cursors.up.isDown && player.body.touching.down) {
+    if (jumpKeyDown() && player.body.touching.down) {
         player.body.velocity.y = player.jumpVelocity;
         player.canDoubleJump = "jumped once";
     }
-    else if (cursors.up.isUp && player.canDoubleJump === "jumped once") {
+    else if (jumpKeyUp() && player.canDoubleJump === "jumped once") {
       //Player has jumped and released key
       player.canDoubleJump = "ready";
     }
-    else if (cursors.up.isDown && player.canDoubleJump === "ready") {
+    else if (jumpKeyDown() && player.canDoubleJump === "ready") {
       //Double jump!
       player.body.velocity.y = player.jumpVelocity * 0.8;
       player.canDoubleJump = "wait";
     }
-    else if (cursors.right.isDown) {
+    else if (cursors.right.isDown) { // FOR DEBUG ONLY
       player.x += 10;
     }
-
-    //generate a new obstacle
-    if (Math.random()<0.01) {
-      var newBlock = obstacles.create(700, 405, 'obstacle');
+    
+    //Spawn a new obstacle
+    function newObstacle () {
+      var newBlock = obstacles.create(720, 405, 'obstacle');
 
       newBlock.body.immovable = true;
       newBlock.anchor.setTo(0,1);
       newBlock.scale.setTo(0.5 + Math.random()/2, 0.7 + Math.random()/2); //random width and height
-      newBlock.body.velocity.x = -300;
+      newBlock.body.velocity.x = obstacles.speed;
+      obstacleCount++;
     }
     
+    if (Math.random()<0.01) {
+      newObstacle();
+      if (obstacleCount === obstacleInterval) nextStage();
+    }
+
+    function nextStage () {
+      obstacles.speed -= 30 + (stage/3 * 25);
+      stage++;
+      stageText.text = "Stage: " + stage;
+      obstacleCount = 0;
+    }
   }
 };
 
