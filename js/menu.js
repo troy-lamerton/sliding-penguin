@@ -8,7 +8,7 @@ var menuState = {
     game.add.image(0, 0, 'menu');
 
 
-    var spaceKey = game.input.keyboard.addKey(Phaser.Keyboard.SPACE);
+    var spaceKey = game.input.keyboard.addKey(Phaser.Keyboard.SPACEBAR);
 
     spaceKey.onDown.addOnce(this.play, this);
   },
