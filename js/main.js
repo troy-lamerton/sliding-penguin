@@ -1,4 +1,5 @@
 var game = new Phaser.Game(720, 480, Phaser.AUTO, 'gameContainer');
+
 var player, ground, obstacles; 
 var PlayingState = {
   preload: function () {
@@ -17,6 +18,7 @@ var PlayingState = {
 
     game.physics.startSystem(Phaser.Physics.ARCADE);
 
+    //background image
     game.add.image(0, 0, 'background');
 
     //add ground and make it solid
@@ -140,5 +142,7 @@ var PlayingState = {
   }
 };
 
-game.state.add('Playing', PlayingState);
-game.state.start('Playing');
+game.state.add('playing', PlayingState);
+game.state.add('menu', menuState);
+
+game.state.start('menu');
