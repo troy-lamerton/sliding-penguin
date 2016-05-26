@@ -14,7 +14,7 @@ var PlayingState = {
   },
   create: function () {
 
-    function togglePause() {
+    game.togglePause = function () {
       game.physics.arcade.isPaused = (game.physics.arcade.isPaused) ? false : true;
     }
 
@@ -33,7 +33,6 @@ var PlayingState = {
     game.physics.arcade.enable(player);
 
     player.enableBody = true;
-    player.body.bounce.y = 0.1;
     player.body.gravity.y = 800;
     player.body.collideWorldBounds = true;
 
@@ -48,19 +47,21 @@ var PlayingState = {
 
     //Player health
     player.maxHealth = 5;
-    player.health = 5;
+    player.currentHealth = player.maxHealth;
 
-    player.drawHealth = function (currentHealth) {
+    player.generateHealth = function (maxHealth) {
       var x = 200;
       var heartWidth = 59;
       var spacing = 24;
       var top = 20;
 
+      var healthArray = [];
       for (var i = 1; i <= player.maxHealth; i++) {
-        var heartImg = (i <= currentHealth) ? 'heart' : 'emptyHeart';
-        game.add.sprite(x + i*(spacing + heartWidth), top, heartImg);
+        healthArray.push(game.add.sprite(x + (i-1)*(spacing + heartWidth), top, 'heart'));
       }
-    };
+      return healthArray;
+    }
+
     // stage controls speed of obstacles
     stage = 1;
     obstacleInterval = 6; //Increase stage after spawning this many obstacles.
@@ -76,9 +77,9 @@ var PlayingState = {
     // Extra keys
     spaceKey = this.input.keyboard.addKey(Phaser.Keyboard.SPACEBAR);
     pauseKey = this.input.keyboard.addKey(Phaser.Keyboard.P);
-    pauseKey.onDown.add(togglePause, this);
+    pauseKey.onDown.add(game.togglePause, this);
 
-    player.drawHealth(player.health);
+    player.health = player.generateHealth(player.maxHealth);
   },
 
   update: function () {
@@ -97,11 +98,18 @@ var PlayingState = {
 
     function takeDamage () {
       //player has hit something
-      player.health--;
-      player.body.y = 300;
+      player.body.y = 200;
       player.body.velocity.y = 0;
 
-      player.drawHealth(player.health);
+      //replace the last heart with an empty one
+      player.health[player.currentHealth-1].loadTexture('emptyHeart');
+      player.currentHealth--;
+
+      if (player.currentHealth === 0) {
+        alert("Smack! You're dead... oh dear.");
+        game.togglePause();
+      }
+
       obstacles.removeAll();
     }
 
@@ -126,21 +134,56 @@ var PlayingState = {
       player.canDoubleJump = "wait";
     }
     
+    function needMoreObstacles (prevBlock) {
+      if (prevBlock !== undefined) {
+        //dont add another block if the previous block will in be in the way
+        //else if the previous block is almost off the screen, need more!
+        if (prevBlock.x > 720 - prevBlock.width) return false;
+        else if (prevBlock.x < game.world.width/5) return true;
+        else return 'maybe';
+      }
+      else {
+        previousBlock = false;
+        return true;
+      }
+    }
+
     //Spawn a new obstacle
-    function newObstacle () {
-      var newBlock = obstacles.create(720, 405, 'obstacle');
+    function newObstacle (prevBlock, placeAtX) {
+      if (!placeAtX) placeAtX = 720;
+
+      var newBlock = obstacles.create(placeAtX, 407, 'obstacle');
 
       newBlock.body.immovable = true;
       newBlock.anchor.setTo(0,1);
-      newBlock.scale.setTo(0.5 + Math.random()/2, 0.7 + Math.random()/2); //random width and height
+      newBlock.scale.setTo(0.5 + Math.random()/2, 0.6 + Math.random()); //random width and height
       newBlock.body.velocity.x = obstacles.speed;
+
       obstacleCount++;
+
+      //this is the first block, we're done creating it
+      if (prevBlock === false) return;
+
+      //If the previous block is nearby, make this one taller
+      if (prevBlock.x > 720 - prevBlock.body.width * 2
+        && prevBlock.x < 720 - prevBlock.body.width * 1.1) {
+        newBlock.height += prevBlock.height * 0.8;
+      }
+
     }
-    
-    if (Math.random()<0.01) {
-      newObstacle();
-      if (obstacleCount === obstacleInterval) nextStage();
+
+    var previousBlock = obstacles.children[obstacles.children.length-1];
+    if (needMoreObstacles(previousBlock) === 'maybe') {
+      if (Math.random()<0.01) {
+        newObstacle(previousBlock);
+      }
     }
+    else if (needMoreObstacles(previousBlock)) {
+      newObstacle(previousBlock);
+    }
+
+    if (obstacleCount === obstacleInterval) nextStage();
+
 
     function nextStage () {
       obstacles.speed -= 30 + (stage/3 * 25);
