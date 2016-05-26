@@ -8,13 +8,15 @@ var PlayingState = {
     game.load.image('ground', 'assets/ground.png');
     game.load.image('obstacle', 'assets/obstacle.png');
 
+    game.load.image('heart', 'assets/heart.png');
+    game.load.image('emptyHeart', 'assets/emptyHeart.png');
+
   },
   create: function () {
 
     function togglePause() {
       game.physics.arcade.isPaused = (game.physics.arcade.isPaused) ? false : true;
     }
-
 
     game.physics.startSystem(Phaser.Physics.ARCADE);
 
@@ -26,7 +28,7 @@ var PlayingState = {
     game.physics.arcade.enable(ground);
     ground.body.immovable = true;
 
-    //Player physics
+    //Player physics setup
     player = game.add.sprite(45, 230, 'penguin');
     game.physics.arcade.enable(player);
 
@@ -38,20 +40,27 @@ var PlayingState = {
     player.jumpVelocity = -425;
     player.canDoubleJump = "wait";
 
-    //Obstacle physics
+    //Obstacle physics setup
     obstacles = game.add.group();
     obstacles.enableBody = true;
     obstacles.speed = -200;
 
 
-    //Adding other variables
-    player.health = 6;
-    var graphics = game.add.graphics(100, 100);
-    healthBar = new Phaser.Rectangle(20, 2, 300, 40);
-    graphics.beginFill(0xFF700B, 1);
-    graphics.drawRect(healthBar);
-    graphics.endFill();
+    //Player health
+    player.maxHealth = 5;
+    player.health = 5;
 
+    player.drawHealth = function (currentHealth) {
+      var x = 200;
+      var heartWidth = 59;
+      var spacing = 24;
+      var top = 20;
+
+      for (var i = 1; i <= player.maxHealth; i++) {
+        var heartImg = (i <= currentHealth) ? 'heart' : 'emptyHeart';
+        game.add.sprite(x + i*(spacing + heartWidth), top, heartImg);
+      }
+    };
     // stage controls speed of obstacles
     stage = 1;
     obstacleInterval = 6; //Increase stage after spawning this many obstacles.
@@ -68,6 +77,8 @@ var PlayingState = {
     spaceKey = this.input.keyboard.addKey(Phaser.Keyboard.SPACEBAR);
     pauseKey = this.input.keyboard.addKey(Phaser.Keyboard.P);
     pauseKey.onDown.add(togglePause, this);
+
+    player.drawHealth(player.health);
   },
 
   update: function () {
@@ -83,14 +94,17 @@ var PlayingState = {
     if (player.body.touching.right) {
       takeDamage();
     }
+
     function takeDamage () {
       //player has hit something
       player.health--;
       player.body.y = 300;
       player.body.velocity.y = 0;
 
+      player.drawHealth(player.health);
       obstacles.removeAll();
     }
+
     function jumpKeyDown () {
       return (cursors.up.isDown || spaceKey.isDown);
     }
