@@ -13,7 +13,6 @@ var PlayingState = {
 
   },
   create: function () {
-
     game.togglePause = function () {
       game.physics.arcade.isPaused = (game.physics.arcade.isPaused) ? false : true;
     }
@@ -50,14 +49,17 @@ var PlayingState = {
     player.currentHealth = player.maxHealth;
 
     player.generateHealth = function (maxHealth) {
-      var x = 200;
-      var heartWidth = 59;
-      var spacing = 24;
-      var top = 20;
+      var heartSize = 32;
+      var spacing = 12;
+      var left = spacing;
+      var top = 10;
 
       var healthArray = [];
       for (var i = 1; i <= player.maxHealth; i++) {
-        healthArray.push(game.add.sprite(x + (i-1)*(spacing + heartWidth), top, 'heart'));
+        var nextHeart = game.add.sprite(left + (i-1)*(spacing + heartSize), top, 'heart');
+        nextHeart.width = heartSize;
+        nextHeart.height = heartSize;
+        healthArray.push(nextHeart);
       }
       return healthArray;
     }
@@ -80,8 +82,8 @@ var PlayingState = {
     pauseKey.onDown.add(game.togglePause, this);
 
     player.health = player.generateHealth(player.maxHealth);
-  },
 
+  },
   update: function () {
     game.physics.arcade.collide(player, ground);
     game.physics.arcade.collide(player, obstacles, this.noPushing);
