@@ -103,16 +103,39 @@ var PlayingState = {
       player.body.y = 200;
       player.body.velocity.y = 0;
 
-      //replace the last heart with an empty one
-      player.health[player.currentHealth-1].loadTexture('emptyHeart');
       player.currentHealth--;
 
+      //replace the last heart with an empty one
+      if (player.currentHealth >= 0){
+        player.health[player.currentHealth].loadTexture('emptyHeart');
+      };
+
       if (player.currentHealth === 0) {
-        alert("Smack! You're dead... oh dear.");
         game.togglePause();
+
+        displayFinalScore();
+        game.time.events.add(Phaser.Timer.SECOND * 4, function () {
+        game.state.start('menu');}, this);
+
+        return;
       }
 
       obstacles.removeAll();
+    }
+
+    function displayFinalScore () {
+      var scoreStyle = {font: "bold 16pt Arial", backgroundColor: "#FFF"}
+      
+      var gameOverText = game.add.text(game.world.width/2, game.world.height/2 - 40,
+        "Game Over", scoreStyle);
+      var scoreText = game.add.text(game.world.width/2, game.world.height/2,
+        "Obstacles passed: " + obstacleCount, scoreStyle);
+
+
+      scoreText.anchor.x = 0.5;
+      scoreText.anchor.y = 1;
+      gameOverText.anchor.x = 0.5;
+      gameOverText.anchor.y = 1;
     }
 
     function jumpKeyDown () {
@@ -184,7 +207,7 @@ var PlayingState = {
       newObstacle(previousBlock);
     }
 
-    if (obstacleCount === obstacleInterval) nextStage();
+    if (obstacleCount === obstacleInterval && player.currentHealth !== 0) nextStage();
 
 
     function nextStage () {
