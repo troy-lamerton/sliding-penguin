@@ -43,6 +43,8 @@ var PlayingState = {
     obstacles.enableBody = true;
     obstacles.speed = -200;
 
+    //obstacle score tracker
+    obstacles.score = 0;
 
     //Player health
     player.maxHealth = 5;
@@ -129,7 +131,7 @@ var PlayingState = {
       var gameOverText = game.add.text(game.world.width/2, game.world.height/2 - 40,
         "Game Over", scoreStyle);
       var scoreText = game.add.text(game.world.width/2, game.world.height/2,
-        "Obstacles passed: " + obstacleCount, scoreStyle);
+        "Obstacles passed: " + obstacles.score, scoreStyle);
 
 
       scoreText.anchor.x = 0.5;
@@ -185,6 +187,7 @@ var PlayingState = {
       newBlock.body.velocity.x = obstacles.speed;
 
       obstacleCount++;
+      obstacles.score++;
 
       //this is the first block, we're done creating it
       if (prevBlock === false) return;
