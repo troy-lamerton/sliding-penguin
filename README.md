@@ -1,5 +1,8 @@
 # Sliding Penguin
 
+### Play
+Play [Sliding Penguin](https://troy-lamerton.github.io/sliding-penguin/) hosted on github pages 
+
 **Learning objectives**
 * Learn the basics of Phaser.io, a javascript game framework.
 * Get a better understanding of events in javascript.
